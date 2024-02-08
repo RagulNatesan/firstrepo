@@ -1,0 +1,38 @@
+name: Firstbuild  
+on:   
+ push:   
+  branches:
+      - main
+jobs: 
+  push:
+    name: push
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: appleboy/ssh-action@master
+      with:
+       host: ${{ secrets.TEST_SERVER }}
+       username: ${{ secrets.TEST_USERNAME }}
+       key: ${{ secrets.TEST_KEY }}
+       port: ${{ secrets.TEST_PORT }}
+       script: |
+        cd /home/ubuntu/Test/CRUDOPS/CRUDOperations
+        git pull origin main
+        git status
+            
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Build and package WAR file
+      run: |
+       cd /home/ubuntu/Test/CRUDOPS/CRUDOperations
+       mvn -X clean package
+      shell: bash
+      working-directory: /home/ubuntu/Test/CRUDOPS/CRUDOperations
+    - name: Deploy WAR file to Putty server
+      run: scp /home/ubuntu/Test/CRUDOPS/CRUDOperations/target/CRUDOperations-0.0.1-SNAPSHOT.war ubuntu@13.233.91.22:/home/ubuntu/Test/CRUDOPS/CRUDOperations/target/
+
+
+
